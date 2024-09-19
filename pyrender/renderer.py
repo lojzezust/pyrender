@@ -125,7 +125,7 @@ class Renderer(object):
         self._update_context(scene, flags)
 
         # Render necessary shadow maps
-        if not bool(flags & RenderFlags.DEPTH_ONLY or flags & RenderFlags.SEG):
+        if not bool(flags & RenderFlags.DEPTH_ONLY or flags & RenderFlags.SEG or flags & RenderFlags.SEG_VERT):
             for ln in scene.light_nodes:
                 take_pass = False
                 if (isinstance(ln.light, DirectionalLight) and
@@ -326,7 +326,7 @@ class Renderer(object):
         self._configure_forward_pass_viewport(flags)
 
         # Clear it
-        if bool(flags & RenderFlags.SEG):
+        if bool(flags & RenderFlags.SEG or flags & RenderFlags.SEG_VERT):
             glClearColor(0.0, 0.0, 0.0, 1.0)
             if seg_node_map is None:
                 seg_node_map = {}
@@ -335,7 +335,7 @@ class Renderer(object):
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-        if not bool(flags & RenderFlags.SEG):
+        if not bool(flags & RenderFlags.SEG) and not bool(flags & RenderFlags.SEG_VERT):
             glEnable(GL_MULTISAMPLE)
         else:
             glDisable(GL_MULTISAMPLE)
@@ -382,7 +382,7 @@ class Renderer(object):
 
                 # Next, bind the lighting
                 if not (flags & RenderFlags.DEPTH_ONLY or flags & RenderFlags.FLAT or
-                        flags & RenderFlags.SEG):
+                        flags & RenderFlags.SEG or flags & RenderFlags.SEG_VERT):
                     self._bind_lighting(scene, program, node, flags)
 
                 # Finally, bind and draw the primitive
@@ -516,7 +516,7 @@ class Renderer(object):
         primitive._bind()
 
         # Bind mesh material
-        if not (flags & RenderFlags.DEPTH_ONLY or flags & RenderFlags.SEG):
+        if not (flags & RenderFlags.DEPTH_ONLY or flags & RenderFlags.SEG or flags & RenderFlags.SEG_VERT):
             material = primitive.material
 
             # Bind textures
@@ -902,7 +902,8 @@ class Renderer(object):
         if (bool(program_flags & ProgramFlags.USE_MATERIAL) and
                 not flags & RenderFlags.DEPTH_ONLY and
                 not flags & RenderFlags.FLAT and
-                not flags & RenderFlags.SEG):
+                not flags & RenderFlags.SEG and
+                not flags & RenderFlags.SEG_VERT):
             vertex_shader = 'mesh.vert'
             fragment_shader = 'mesh.frag'
         elif bool(program_flags & (ProgramFlags.VERTEX_NORMALS |
@@ -919,6 +920,9 @@ class Renderer(object):
         elif flags & RenderFlags.SEG:
             vertex_shader = 'segmentation.vert'
             fragment_shader = 'segmentation.frag'
+        elif flags & RenderFlags.SEG_VERT:
+            vertex_shader = 'segmentation_vertex.vert'
+            fragment_shader = 'segmentation_vertex.frag'
         else:
             vertex_shader = 'mesh_depth.vert'
             fragment_shader = 'mesh_depth.frag'

@@ -54,6 +54,8 @@ class RenderFlags(object):
     FLAT = 4096
     """Render the color buffer flat, with no lighting computations."""
     SEG = 8192
+    SEG_VERT = 16_384
+    """Render a segmentation mask, based on vertex colors. Flat, no lighting computations, interpolation or anti-aliasing."""
 
 
 class TextAlign:
